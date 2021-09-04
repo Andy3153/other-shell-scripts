@@ -1,0 +1,17 @@
+##
+## .gitignore by Andy3153
+## created  30/10/20 ~ 16:49:38
+## modified 24/08/21 ~ 15:08:52
+##
+
+# backups/backups KDevelop creates automatically
+**/*bak
+
+# the files KDE's Dolphin file manager creates
+**.directory
+
+# Kate's swap temporary files
+**/*.kate-swp
+
+# KDevelop project files
+**/*.kdev4
