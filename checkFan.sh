@@ -27,9 +27,9 @@ while [ $1 ]; do # Check for arguments
       fi
 
     # Selecting showing method
-      if [ "$1" == '--in-terminal' ] || [ "$1" == '-t' ]
+      if [ "$1" = '--in-terminal' ] || [ "$1" = '-t' ]
        then echo $_message
-       else if [ "$1" == '--in-notification' ] || [ "$1" == '-n' ]
+       else if [ "$1" = '--in-notification' ] || [ "$1" = '-n' ]
               then notify-send --urgency=normal --expire-time=1500 --icon=indicator-sensors-fan --app-name="checkFan" "Fan Mode" "$_message"
 	     fi
       fi
