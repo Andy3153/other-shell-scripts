@@ -16,7 +16,7 @@
 # {{{ Variables
 transparency='0'
 bg='black'
-font='Iosevka'
+font='Iosevka Nerd Font'
 fontsize='18'
 bordersize='0'
 # }}}
