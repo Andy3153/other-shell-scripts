@@ -1,9 +1,10 @@
 #!/bin/sh
 ##
 ## checkFan.sh by Andy3153
-## created 03/09/21 ~ 15:30:21
+## created   03/09/21 ~ 15:30:21
+## modified1 26/12/22 ~ 00:45:58
 ##
-## This script was made in order to check the fan status on Asus TUF laptops using the Faustus unofficial driver.
+## This script was made in order to check the throttle thermal policy on Asus TUF laptops.
 ##
 ## Dependencies:
 ##    Required: sh inotify-tools
@@ -11,7 +12,7 @@
 ##
 
 # Variables
-  _file="/sys/devices/platform/faustus/throttle_thermal_policy"
+  _file="/sys/devices/platform/asus-nb-wmi/throttle_thermal_policy"
 
 while [ $1 ]; do # Check for arguments
   while inotifywait --quiet --event modify $_file > /dev/null; do
