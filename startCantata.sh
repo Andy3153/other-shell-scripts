@@ -1,18 +1,17 @@
 #!/bin/sh
 ##
 ## startCantata.sh by Andy3153
-## created 08/09/20 ~ 12:55:58
+## created   08/09/20 ~ 12:55:58
+## modified1 19/01/23 ~ 19:57:21
 ##
-## This script was made in order to start MPD before Cantata, and to also start Discord RPC for MPD.
+## This script was made in order to start Discord RPC for MPD before starting
+## Cantata.
 ##
 ## Dependencies:
-##    Required: sh systemd mpd cantata mpd-discord-rpc
-##    Optional:
+##   cantata mpd-discord-rpc
 ##
 
-systemctl --user start mpd.service && \
 mpd-discord-rpc & #&& \
 cantata
 
 killall mpd-discord-rpc #&& \
-systemctl --user stop mpd.service #&& \
