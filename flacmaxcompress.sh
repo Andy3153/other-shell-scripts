@@ -14,7 +14,7 @@
 ##
 
 # {{{ Check if argument was given
-origfolder="$(readlink -f $1 2> /dev/null)"
+origfolder=$(readlink -f "$1" 2> /dev/null)
 
 if [ ! -d "$origfolder" ]; then
   echo "Not a folder."
@@ -24,7 +24,7 @@ fi
 
 # {{{ Create copy of files
 workfolder="${origfolder}_recompressed"
-cp -r "$1" "$workfolder"
+cp -r "$origfolder" "$workfolder"
 # }}}
 
 # {{{ Run the conversion

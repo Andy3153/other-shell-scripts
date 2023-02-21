@@ -19,7 +19,7 @@
 ##
 
 # {{{ Check if argument was given
-origfolder="$(readlink -f $1 2> /dev/null)"
+origfolder=$(readlink -f "$1" 2> /dev/null)
 
 if [ ! -d "$origfolder" ]; then
   echo "Not a folder."
@@ -28,12 +28,15 @@ fi
 # }}}
 
 # {{{ Create copy of files
-workfolder="${1}_opus"
-cp -r "$1" "$workfolder"
+workfolder="${origfolder}_opus"
+cp -r "$origfolder" "$workfolder"
 # }}}
 
+
+  #ffmpeg -i "$file_noext" -f wav - | opusenc - "${file_noext}.opus" &&\
+
 # {{{ Run the conversion
-find "$workfolder" -type f -exec sh -c \
+find "$workfolder" -type f -iname '*.flac' -exec sh -c \
   'file="{}" &&\
   file_noext=$(echo "$file" | sed -e "s/\.[^.]*$//")
   mv "$file" "$file_noext" &&\
