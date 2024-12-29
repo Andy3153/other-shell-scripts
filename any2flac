@@ -1,0 +1,30 @@
+#!/bin/sh
+## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+##
+## any2flac by Andy3153
+## created   20/01/23 ~ 14:03:41
+## modified1 29/12/24 ~ 16:50:23
+##
+
+# {{{ Check if argument was given
+origfolder=$(readlink -f "${1}" 2> /dev/null)
+
+if [ ! -d "${origfolder}" ]; then
+  echo "Not a folder."
+  exit
+fi
+# }}}
+
+# {{{ Create copy of files
+workfolder="${origfolder}_flac"
+cp -r "${origfolder}" "${workfolder}"
+# }}}
+
+# {{{ Run the conversion
+find "${workfolder}" -type f -exec sh -c \
+  'file="{}" &&\
+  file_noext=$(echo "${file}" | sed -e "s/\.[^.]*$//")
+  mv "${file}" "${file_noext}" &&\
+  flac --force --verify --best "${file_noext}" -o "${file_noext}.flac" &&\
+  rm "${file_noext}"' \;
+# }}}
