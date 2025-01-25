@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+##
+## run_game by Andy3153
+## created 24/01/25 ~ 22:42:14
+##
+
+# {{{ Functions
+# {{{ Check if command exists
+function checkCmdExists()
+{
+  if ! command -v "${1}" &> /dev/null
+  then
+    if [ "${2}" ]
+    then echo "${2}"                    ; exit 1
+    else echo "${1}: command not found" ; exit 1
+    fi
+  fi
+}
+# }}}
+
+# {{{ Print help
+function printHelp()
+{
+  printf "%s" "\
+usage: ${0} [-c] [-g] [-h] [-m] [-p] game
+
+options:
+  -c, --suspend-compositing suspend compositing for supported desktops using the suspend compositing script
+  -g, --gamemode            run game using GameMode, a program that allows games to request a set of temporary OS optimisations
+  -h, --help                show this help message and exit
+  -m, --mangohud            run game using MangoHud, a Vulkan and OpenGL overlay for monitoring FPS, temperatures, load and more
+  -p, --prime-offload       run game using Nvidia PRIME Render offloading (for iGPU+dGPU systems like laptops)
+"
+}
+# }}}
+
+# {{{ Get arguments
+function getArgs()
+{
+  checkCmdExists getopt
+
+  eval set -- "$(getopt --options "cghmp" --longoptions "suspend-compositing,gamemode,help,mangohud,prime-offload" -- "${@}")"
+
+  for opt
+  do
+    case "${opt}" in
+      -c|--suspend-compositing)
+        compositing=1
+        shift
+        ;;
+
+      -g|--gamemode)
+        gamemode=1
+        shift
+        ;;
+
+      -h|--help)
+        printHelp
+        exit 0
+        ;;
+
+      -m|--mangohud)
+        mangohud=1
+        shift
+        ;;
+
+      -p|--prime-offload)
+        prime=1
+        shift
+        ;;
+    esac
+  done
+
+  shift 2
+  command="${*}"
+}
+# }}}
+
+# {{{ Parse arguments
+function parseArgs()
+{
+  if [ "${command}" ]
+  then run="${command}"
+  else
+    printf "%s" "\
+${0}: not enough arguments: 0 arguments but 1 expected.
+Try \`${0} --help\`.
+"
+    exit 1
+  fi
+
+  if [ "${prime}" ]
+  then
+    if [ "${gamemode}" ]
+    then
+      cmd="env __NV_PRIME_RENDER_OFFLOAD=1 env __GLX_VENDOR_LIBRARY_NAME=nvidia env __VK_LAYER_NV_optimus=NVIDIA_only env __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0"
+      if [ "${gamemodeexec}" ]
+      then gamemodeexec="${gamemodeexec} ${cmd}"
+      else gamemodeexec="${cmd}"
+      fi
+    else
+      run="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 ${run}"
+    fi
+  fi
+
+  if [ "${mangohud}" ]
+  then
+    checkCmdExists mangohud "MangoHud is not installed."
+
+    if [ "${gamemode}" ]
+    then
+      cmd="mangohud"
+      if [ "${gamemodeexec}" ]
+      then gamemodeexec="${gamemodeexec} ${cmd}"
+      else gamemodeexec="${cmd}"
+      fi
+    else
+      run="mangohud ${run}"
+    fi
+  fi
+
+  if [ "${gamemode}" ]
+  then
+    checkCmdExists gamemoderun "GameMode is not installed."
+    if [ "${gamemodeexec}" ]
+    then run="GAMEMODERUNEXEC=\"${gamemodeexec}\" gamemoderun ${run}"
+    else run="gamemoderun ${run}"
+    fi
+  fi
+
+  if [ "${compositing}" ]
+  then
+    checkCmdExists suspend_compositing.sh "Suspend compositing script is not installed."
+    run="suspend_compositing.sh suspend & ${run} ; suspend_compositing.sh resume"
+  fi
+}
+# }}}
+
+# {{{ Run game
+function runGame()
+{
+  eval "${run}"
+}
+# }}}
+# }}}
+
+# {{{ Main
+getArgs "${0}" "${@}"
+parseArgs
+runGame
+# }}}
