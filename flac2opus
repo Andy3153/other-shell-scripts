@@ -1,0 +1,30 @@
+#!/bin/sh
+## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+##
+## flac2opus by Andy3153
+## created   20/01/23 ~ 01:02:52
+## modified1 29/12/24 ~ 16:53:54
+##
+
+# {{{ Check if argument was given
+origfolder=$(readlink -f "${1}" 2> /dev/null)
+
+if [ ! -d "${origfolder}" ]; then
+  echo "Not a folder."
+  exit
+fi
+# }}}
+
+# {{{ Create copy of files
+workfolder="${origfolder}_opus"
+cp -r "${origfolder}" "${workfolder}"
+# }}}
+
+# {{{ Run the conversion
+find "${workfolder}" -type f -iname "*.flac" -exec sh -c \
+  'file="{}" &&\
+  file_noext=$(echo "${file}" | sed -e "s/\.[^.]*$//")
+  mv "${file}" "${file_noext}" &&\
+  opusenc "${file_noext}" "${file_noext}.opus" &&\
+  rm "${file_noext}"' \;
+# }}}
