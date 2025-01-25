@@ -35,6 +35,17 @@ options:
 }
 # }}}
 
+# {{{ Print no option
+function printNoOption()
+{
+  printf "\
+usage: %s [-c] [-g] [-h] [-m] [-p] game
+Try \`%s --help\` for more information.\n
+" "${0} ${0}"
+
+}
+# }}}
+
 # {{{ Get arguments
 function getArgs()
 {
@@ -82,12 +93,7 @@ function parseArgs()
 {
   if [ "${command}" ]
   then run="${command}"
-  else
-    printf "\
-${0}: not enough arguments: 0 arguments but 1 expected.
-Try \`%s --help\`.
-" "${0}"
-    exit 1
+  else printNoOption ; exit 1
   fi
 
   if [ "${prime}" ]
