@@ -23,9 +23,10 @@ function checkCmdExists()
 function printHelp()
 {
   printf "\
-usage: %s [-c] [-g] [-h] [-m] [-p] game
+Usage: %s [-c] [-g] [-h] [-m] [-p] game
+Run a game with different extra helper programs
 
-options:
+Options:
   -c, --suspend-compositing suspend compositing for supported desktops using the suspend compositing script
   -g, --gamemode            run game using GameMode, a program that allows games to request a set of temporary OS optimisations
   -h, --help                show this help message and exit
