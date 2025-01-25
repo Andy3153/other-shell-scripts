@@ -140,8 +140,8 @@ function parseOpts()
 
   if [ "${compositing}" ]
   then
-    checkCmdExists suspend_compositing.sh "Suspend compositing script is not installed."
-    run="suspend_compositing.sh suspend & ${run} ; suspend_compositing.sh resume"
+    checkCmdExists suspend_compositing "Suspend compositing script is not installed."
+    run="suspend_compositing --external --notify suspend & ${run} ; suspend_compositing --external --notify resume"
   fi
 }
 # }}}
