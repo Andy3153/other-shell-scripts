@@ -22,8 +22,8 @@ function checkCmdExists()
 # {{{ Print help
 function printHelp()
 {
-  printf "%s" "\
-usage: ${0} [-c] [-g] [-h] [-m] [-p] game
+  printf "\
+usage: %s [-c] [-g] [-h] [-m] [-p] game
 
 options:
   -c, --suspend-compositing suspend compositing for supported desktops using the suspend compositing script
@@ -31,7 +31,7 @@ options:
   -h, --help                show this help message and exit
   -m, --mangohud            run game using MangoHud, a Vulkan and OpenGL overlay for monitoring FPS, temperatures, load and more
   -p, --prime-offload       run game using Nvidia PRIME Render offloading (for iGPU+dGPU systems like laptops)
-"
+" "${0}"
 }
 # }}}
 
@@ -83,10 +83,10 @@ function parseArgs()
   if [ "${command}" ]
   then run="${command}"
   else
-    printf "%s" "\
+    printf "\
 ${0}: not enough arguments: 0 arguments but 1 expected.
-Try \`${0} --help\`.
-"
+Try \`%s --help\`.
+" "${0}"
     exit 1
   fi
 
