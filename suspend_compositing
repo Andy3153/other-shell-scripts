@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+##
+## suspend_compositing by Andy3153
+## created   16/12/23 ~ 16:02:28
+## rewrote1  20/12/23 ~ 15:23:34
+## rewrote2  25/01/25 ~ 15:08:02
+##
+## Imitate KDE's suspend compositing function in various other desktops
+## Supported desktops:
+##   - Hyprland (example from https://wiki.hyprland.org/Configuring/Uncommon-tips--tricks/#toggle-animationsbluretc-hotkey)
+##
+
+# {{{ Functions
+# {{{ Check if command exists
+function checkCmdExists()
+{
+  if ! command -v "${1}" &> /dev/null
+  then
+    if [ "${2}" ]
+    then echo "${2}"                    ; exit 1
+    else echo "${1}: command not found" ; exit 1
+    fi
+  fi
+}
+# }}}
+
+# {{{ Print help
+function printHelp()
+{
+  printf "\
+Usage: %s [-e] [-h] [-n] subcommand
+Imitate KDE's suspend compositing function in various other desktops
+
+Options:
+  -e, --external to be used when other programs use this script, signals that an external application has done an action
+  -h, --help     show this help message and exit
+  -n, notify     display desktop notifications
+" "${0}"
+}
+# }}}
+
+# {{{ Check running desktop
+function checkDesktop()
+{
+  if [ "$DESKTOP_SESSION" == "hyprland" ] && [ "$XDG_CURRENT_DESKTOP" == "Hyprland" ] && command -v hyprctl &> /dev/null
+  then desktop="hyprland"
+  fi
+}
+# }}}
+
+# {{{ Check if animations are enabled
+function checkAnimations()
+{
+  checkDesktop
+
+  case "${desktop}" in
+    # {{{ Hyprland
+    "hyprland")
+      if [[ "$(hyprctl getoption animations:enabled | awk 'NR==1{print $2}')" == "1" ]]
+      then animations=1
+      fi
+      ;;
+    # }}}
+  esac
+}
+# }}}
+
+# {{{ Get options
+function getOpts()
+{
+  checkCmdExists getopt
+
+  eval set -- "$(getopt --options "ehn" --longoptions "external,help,notify" -- "${@}")"
+
+  for opt
+  do
+    case "${opt}" in
+      -e|--external)
+        external=1
+        shift
+        ;;
+
+      -h|--help)
+        printHelp
+        exit 0
+        ;;
+
+      -n|--notify)
+        notify=1
+        shift
+        ;;
+    esac
+  done
+
+  shift 2
+  command="${*}"
+}
+# }}}
+
+# {{{ Suspend compositing
+function suspendCompositing()
+{
+  checkDesktop
+
+  case "${desktop}" in
+    # {{{ Hyprland
+    "hyprland")
+      checkCmdExists hyprctl
+
+      hyprctl --batch "\
+        keyword animations:enabled 0;\
+        keyword decoration:blur:enabled 0;\
+        keyword decoration:rounding 0;\
+        keyword decoration:shadow:enabled 0;\
+        keyword windowrulev2 opaque,class:(.*);\
+        keyword bind CTRL_SHIFT_SUPER, c, exec, hyprctl reload\
+      " &> /dev/null
+      ;;
+    # }}}
+  esac
+
+  # {{{ Notifications
+  if [ "${notify}" ]
+  then
+    checkCmdExists notify-send
+    if [ ! "${external}" ]
+    then notify-send --urgency=normal --expire-time=1500 --icon=dialog-scripts --app-name="${0}" "Compositing" "Compositing has been suspended."
+    else notify-send --urgency=normal --expire-time=1500 --icon=dialog-scripts --app-name="${0}" "Compositing" "Compositing has been suspended by an external application."
+    fi
+  else
+    if [ ! "${external}" ]
+    then echo "Compositing has been suspended."
+    else echo "Compositing has been suspended by an external application."
+    fi
+  fi
+  # }}}
+}
+# }}}
+
+# {{{ Resume compositing
+function resumeCompositing()
+{
+  checkDesktop
+
+  case "${desktop}" in
+    # {{{ Hyprland
+    "hyprland")
+      checkCmdExists hyprctl
+
+      hyprctl reload &> /dev/null
+      ;;
+    # }}}
+  esac
+
+  # {{{ Notifications
+  if [ "${notify}" ]
+  then
+    checkCmdExists notify-send
+    if [ ! "${external}" ]
+    then notify-send --urgency=normal --expire-time=1500 --icon=dialog-scripts --app-name="${0}" "Compositing" "Compositing has been resumed."
+    else notify-send --urgency=normal --expire-time=1500 --icon=dialog-scripts --app-name="${0}" "Compositing" "Compositing has been resumed by an external application."
+    fi
+  else
+    if [ ! "${external}" ]
+    then echo "Compositing has been resumed."
+    else echo "Compositing has been resumed by an external application."
+    fi
+  fi
+  # }}}
+}
+# }}}
+
+# {{{ Toggle compositing
+function toggleCompositing()
+{
+  checkAnimations
+
+  if [ "${animations}" ]
+  then suspendCompositing
+  else resumeCompositing
+  fi
+}
+# }}}
+
+# {{{ Parse arguments
+function parseArgs()
+{
+  # help,resume,suspend,toggle
+
+  case "${command}" in
+    "suspend")   suspendCompositing ;;
+    "resume")    resumeCompositing  ;;
+    "toggle"|"") toggleCompositing  ;;
+  esac
+}
+# }}}
+# }}}
+
+# {{{ Main
+getOpts "${0}" "${@}"
+parseArgs
+# }}}
