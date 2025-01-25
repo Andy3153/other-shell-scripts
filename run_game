@@ -4,6 +4,8 @@
 ## run_game by Andy3153
 ## created 24/01/25 ~ 22:42:14
 ##
+## Run a game with different extra helper programs
+##
 
 # {{{ Functions
 # {{{ Check if command exists
@@ -41,14 +43,14 @@ function printNoOption()
 {
   printf "\
 usage: %s [-c] [-g] [-h] [-m] [-p] game
-Try \`%s --help\` for more information.\n
+Try \`%s --help\` for more information.
 " "${0} ${0}"
 
 }
 # }}}
 
-# {{{ Get arguments
-function getArgs()
+# {{{ Get options
+function getOpts()
 {
   checkCmdExists getopt
 
@@ -89,8 +91,8 @@ function getArgs()
 }
 # }}}
 
-# {{{ Parse arguments
-function parseArgs()
+# {{{ Parse options
+function parseOpts()
 {
   if [ "${command}" ]
   then run="${command}"
@@ -153,7 +155,7 @@ function runGame()
 # }}}
 
 # {{{ Main
-getArgs "${0}" "${@}"
-parseArgs
+getOpts "${0}" "${@}"
+parseOpts
 runGame
 # }}}
