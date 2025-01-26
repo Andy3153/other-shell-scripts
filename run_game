@@ -34,6 +34,7 @@ Options:
   -h, --help                show this help message and exit
   -m, --mangohud            run game using MangoHud, a Vulkan and OpenGL overlay for monitoring FPS, temperatures, load and more
   -p, --prime               run game using Nvidia PRIME Render offloading (for iGPU+dGPU systems like laptops)
+  -X, --force-xwayland      run game in XWayland if running on Wayland
 " "${0}"
 }
 # }}}
@@ -54,7 +55,7 @@ function getOpts()
 {
   checkCmdExists getopt
 
-  eval set -- "$(getopt --options "cghmpX" --longoptions "suspend-compositing,gamemode,help,mangohud,prime" -- "${@}")"
+  eval set -- "$(getopt --options "cghmpX" --longoptions "suspend-compositing,gamemode,help,mangohud,prime,force-xwayland" -- "${@}")"
 
   for opt
   do
@@ -83,6 +84,11 @@ function getOpts()
         prime=1
         shift
         ;;
+
+      -X|--force-xwayland)
+        xwayland=1
+        shift
+        ;;
     esac
   done
 
@@ -99,6 +105,23 @@ function parseOpts()
   else printNoOption ; exit 1
   fi
 
+  if [ "${xwayland}" ]
+  then
+    if [ "${WAYLAND_DISPLAY}" ]
+    then
+      if [ "${gamemode}" ]
+      then
+        cmd="env CLUTTER_BACKEND=x11 env GDK_BACKEND=x11 env QT_QPA_PLATFORM=xcb env SDL_VIDEODRIVER=x11 env WAYLAND_DISPLAY="
+        if [ "${gamemodeexec}" ]
+        then gamemodeexec="${gamemodeexec} ${cmd}"
+        else gamemodeexec="${cmd}"
+        fi
+      else run="CLUTTER_BACKEND=x11 GDK_BACKEND=x11 QT_QPA_PLATFORM=xcb SDL_VIDEODRIVER=x11 WAYLAND_DISPLAY= ${run}"
+      fi
+    else echo "Not running on Wayland." ; exit 1
+    fi
+  fi
+
   if [ "${prime}" ]
   then
     if [ "${gamemode}" ]
@@ -108,8 +131,7 @@ function parseOpts()
       then gamemodeexec="${gamemodeexec} ${cmd}"
       else gamemodeexec="${cmd}"
       fi
-    else
-      run="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 ${run}"
+    else run="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 ${run}"
     fi
   fi
 
