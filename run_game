@@ -171,7 +171,7 @@ function parseOpts()
 # {{{ Run game
 function runGame()
 {
-  eval "${run}"
+  bash -c "${run}"
 }
 # }}}
 # }}}
