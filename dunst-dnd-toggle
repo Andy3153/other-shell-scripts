@@ -1,0 +1,10 @@
+#!/bin/sh
+# vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+if [ "$(dunstctl is-paused)" = "false" ]
+then
+  swayosd-client --custom-icon notification-disabled-symbolic --custom-message "Do Not Disturb On" &&\
+  dunstctl set-paused true
+else
+  swayosd-client --custom-icon notification-symbolic --custom-message "Do Not Disturb Off" &&\
+  dunstctl set-paused false
+fi
