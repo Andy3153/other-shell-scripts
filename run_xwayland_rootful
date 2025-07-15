@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
+##
+## run_xwayland_rootful by Andy3153
+## created 15/07/25 ~ 12:35:32
+##
+## Start programs in a rootful XWayland window using Openbox
+##
+
+# {{{ Variables
+xwayland_display=":${RANDOM}"
+# }}}
+
+# {{{ Functions
+# {{{ Check if command exists
+function checkCmdExists()
+{
+  if ! command -v "${1}" &> /dev/null
+  then
+    if [ "${2}" ]
+    then echo "${2}"                    ; exit 1
+    else echo "${1}: command not found" ; exit 1
+    fi
+  fi
+}
+# }}}
+
+# {{{ Print help
+function printHelp()
+{
+  printf "\
+Usage: %s [-c] [-h] [-t] program
+Start programs in a rootful XWayland window using Openbox
+
+Options:
+  -c, --app-class Application class of the launched program (used to fullscreen the window in Openbox)
+  -t, --win-title Window title of the launched program (used to fullscreen the window in Openbox)
+" "${0}"
+}
+# }}}
+
+# {{{ Print no option
+function printNoOption()
+{
+  printf "\
+usage: %s [-c] [-h] [-t] program
+Try \`%s --help\` for more information.
+" "${0} ${0}"
+}
+# }}}
+
+# {{{ Get options
+function getOpts()
+{
+  checkCmdExists getopt
+
+  eval set -- "$(getopt --options "c:ht:" --longoptions "app-class:,help,win-title:" -- "${@}")"
+
+  for opt
+  do
+    case "${opt}" in
+      -c|--app-class)
+        app_class="${2}"
+        shift 2
+        ;;
+
+      -h|--help)
+        printHelp
+        exit 0
+        ;;
+
+      -t|--win-title)
+        win_title="${2}"
+        shift 2
+        ;;
+    esac
+  done
+
+  shift 2
+  command="${*}"
+}
+# }}}
+
+# {{{ Parse options
+function parseOpts()
+{
+  if [ ! "${command}" ]
+  then printNoOption ; exit 1
+  fi
+
+  openbox_script="/tmp/run_xwayland_rootful-script"
+
+  cat << EOF > "${openbox_script}"
+#!/bin/sh
+DISPLAY=${xwayland_display} CLUTTER_BACKEND=x11 GDK_BACKEND=x11 QT_QPA_PLATFORM=xcb SDL_VIDEODRIVER=x11 WAYLAND_DISPLAY= ${command}
+EOF
+
+  chmod +x "${openbox_script}"
+
+  run="DISPLAY=${xwayland_display} openbox --startup \"${openbox_script}\""
+
+
+  if [ "${app_class}" ] || [ "${win_title}" ]
+  then
+    if   [ "${app_class}" ] && [ "${win_title}" ]; then openbox_app="class=\"${app_class}\" title=\"${win_title}\""
+    elif [ "${app_class}" ];                       then openbox_app="class=\"${app_class}\""
+    elif [ "${win_title}" ];                       then openbox_app="title=\"${win_title}\""
+    fi
+
+  run="${run} --config-file <(cat << EOF
+<openbox_config>
+  <applications>
+    <application ${openbox_app}>
+      <decor>no</decor>
+      <fullscreen>yes</fullscreen>
+      <maximized>yes</maximized>
+    </application>
+  </applications>
+</openbox_config>
+EOF
+)"
+  fi
+}
+# }}}
+
+# {{{ Run program
+function runProgram()
+{
+  bash -c "${run}"
+}
+# }}}
+# }}}
+
+# {{{ Main
+getOpts "${0}" "${@}"
+parseOpts
+
+Xwayland "${xwayland_display}" &
+runProgram
+# }}}
